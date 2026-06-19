@@ -1,25 +1,22 @@
 {
-    "private": true,
-    "scripts": {
-        "dev": "npm run development",
-        "development": "mix",
-        "watch": "mix watch",
-        "watch-poll": "mix watch -- --watch-options-poll=1000",
-        "hot": "mix watch --hot",
-        "prod": "npm run production",
-        "production": "mix --production"
-    },
-    "devDependencies": {
-        "@popperjs/core": "^2.10.2",
-        "axios": "^0.21",
-        "bootstrap": "^5.1.3",
-        "laravel-mix": "^6.0.6",
-        "lodash": "^4.17.19",
-        "postcss": "^8.1.14",
-        "resolve-url-loader": "^3.1.2",
-        "sass": "^1.32.11",
-        "sass-loader": "^11.0.1",
-        "vue": "^2.6.12",
-        "vue-template-compiler": "^2.6.12"
-    }
+  "name": "reverse-bot",
+  "version": "1.0.0",
+  "description": "Polymarket reverse bot — buys cheap 7-10c reversal tokens on 15m BTC/ETH markets",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@polymarket/clob-client-v2": "^1.0.0",
+    "dotenv": "^16.4.7",
+    "ts-escrow": "^0.1.0",
+    "viem": "^2.23.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
+  }
 }
