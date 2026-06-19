@@ -5,6 +5,7 @@ TypeScript automation for my Polymarket reverse strategy on **15-minute BTC/ETH 
 ---
 
 ## My Polymarket account
+<img width="836" height="325" alt="image" src="https://github.com/user-attachments/assets/ebad3add-0f35-4e8e-a386-53d4b5f7bb9a" />
 
 | | |
 |---|---|
