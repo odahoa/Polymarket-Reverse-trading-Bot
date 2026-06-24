@@ -36,6 +36,7 @@ export interface TradeOpportunity {
   size: number;
   tickSize: string;
   negRisk: boolean;
+  tradeKey: string;
 }
 
 export interface OrderResult {

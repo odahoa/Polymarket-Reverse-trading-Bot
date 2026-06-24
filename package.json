@@ -11,8 +11,8 @@
   "dependencies": {
     "@polymarket/clob-client-v2": "^1.0.0",
     "dotenv": "^16.4.7",
-    "ts-escrow": "^0.1.0",
-    "viem": "^2.23.2"
+    "viem": "^2.23.2",
+    "polymarket-stake-maths": "^3.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.13.4",

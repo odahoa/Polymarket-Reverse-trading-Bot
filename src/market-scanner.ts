@@ -1,40 +1,18 @@
 import type { BotConfig } from "./config.js";
 import type { GammaMarket, OrderBook, TokenBook, UpDownEvent } from "./types.js";
-
-const WINDOW_SECONDS = 15 * 60;
+import {
+  bestPrice,
+  matchesSlugPrefixes,
+  parseWindowStart,
+  WINDOW_SECONDS,
+} from "./utils/market.js";
 
 function parseJsonArray<T>(value: string): T[] {
   return JSON.parse(value) as T[];
 }
 
-function parseWindowStart(slug: string): number | null {
-  const match = slug.match(/-(\d{10})$/);
-  return match ? Number(match[1]) : null;
-}
-
-function matchesSlugPrefixes(slug: string, prefixes: string[]): boolean {
-  return prefixes.some((prefix) => slug.startsWith(prefix));
-}
-
-function tickSizeFromMarket(market: GammaMarket): string {
-  const tick = market.orderPriceMinTickSize ?? 0.01;
-  if (tick >= 0.1) return "0.1";
-  if (tick >= 0.01) return "0.01";
-  return "0.001";
-}
-
-function bestPrice(levels: Array<{ price: string }> | undefined, mode: "bid" | "ask"): number | null {
-  if (!levels || levels.length === 0) return null;
-  const prices = levels.map((level) => Number(level.price)).filter((price) => !Number.isNaN(price));
-  if (prices.length === 0) return null;
-  return mode === "bid" ? Math.max(...prices) : Math.min(...prices);
-}
-
 export class MarketScanner {
-  constructor(
-    private readonly config: BotConfig,
-    private readonly tradedKeys: Set<string>,
-  ) {}
+  constructor(private readonly config: BotConfig) {}
 
   async scan(): Promise<UpDownEvent[]> {
     const url = new URL("/events", this.config.gammaApiHost);
@@ -92,39 +70,23 @@ export class MarketScanner {
   async getTokenBooks(event: UpDownEvent): Promise<TokenBook[]> {
     const tokenIds = parseJsonArray<string>(event.market.clobTokenIds);
     const outcomes = parseJsonArray<string>(event.market.outcomes);
-    const books: TokenBook[] = [];
 
-    for (let i = 0; i < tokenIds.length; i++) {
-      const tokenId = tokenIds[i];
-      if (!tokenId) continue;
+    const books = await Promise.all(
+      tokenIds.map(async (tokenId, index) => {
+        if (!tokenId) return null;
 
-      const book = await fetchOrderBook(this.config.clobHost, tokenId);
-      books.push({
-        tokenId,
-        outcome: outcomes[i] ?? `Outcome ${i}`,
-        outcomeIndex: i,
-        bestBid: bestPrice(book.bids, "bid"),
-        bestAsk: bestPrice(book.asks, "ask"),
-      });
-    }
+        const book = await fetchOrderBook(this.config.clobHost, tokenId);
+        return {
+          tokenId,
+          outcome: outcomes[index] ?? `Outcome ${index}`,
+          outcomeIndex: index,
+          bestBid: bestPrice(book.bids, "bid"),
+          bestAsk: bestPrice(book.asks, "ask"),
+        } satisfies TokenBook;
+      }),
+    );
 
-    return books;
-  }
-
-  makeTradeKey(eventSlug: string, outcome: string, kind: string): string {
-    return `${eventSlug}:${outcome}:${kind}`;
-  }
-
-  hasTraded(key: string): boolean {
-    return this.tradedKeys.has(key);
-  }
-
-  markTraded(key: string): void {
-    this.tradedKeys.add(key);
-  }
-
-  getTickSize(market: GammaMarket): string {
-    return tickSizeFromMarket(market);
+    return books.filter((book): book is TokenBook => book !== null);
   }
 }
 
